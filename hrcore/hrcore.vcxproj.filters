@@ -1,0 +1,85 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="资源文件">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="src">
+      <UniqueIdentifier>{3b9b2493-18d0-45b8-afe4-4463ad1d9403}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\l0_def">
+      <UniqueIdentifier>{9cc7937c-6968-464e-a7c2-a081f1744c85}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\l1_ray">
+      <UniqueIdentifier>{97d3e9d3-8e9b-487b-aae7-f2357b575b72}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\l2_port">
+      <UniqueIdentifier>{156ab805-bca0-4161-beab-e38ca7794564}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\l3_node">
+      <UniqueIdentifier>{4e85843f-3230-4bd5-87c0-774a162ad8e8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="pch">
+      <UniqueIdentifier>{d2815670-92ba-4cb1-9244-2e17dfdb6fe4}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\l1_ray\s0_raybase.hpp">
+      <Filter>src\l1_ray</Filter>
+    </ClInclude>
+    <ClInclude Include="src\l1_ray\s1_converters.hpp">
+      <Filter>src\l1_ray</Filter>
+    </ClInclude>
+    <ClInclude Include="src\l1_ray\s2_configs.hpp">
+      <Filter>src\l1_ray</Filter>
+    </ClInclude>
+    <ClInclude Include="src\l0_def\s0_numerical.hpp">
+      <Filter>src\l0_def</Filter>
+    </ClInclude>
+    <ClInclude Include="src\l0_def\s1_global.hpp">
+      <Filter>src\l0_def</Filter>
+    </ClInclude>
+    <ClInclude Include="src\l0_def\s2_vec.hpp">
+      <Filter>src\l0_def</Filter>
+    </ClInclude>
+    <ClInclude Include="src\l0_def\s3_bigint.hpp">
+      <Filter>src\l0_def</Filter>
+    </ClInclude>
+    <ClInclude Include="src\l2_port\s0_portbase.hpp">
+      <Filter>src\l2_port</Filter>
+    </ClInclude>
+    <ClInclude Include="pch\pch.h">
+      <Filter>pch</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\l1_ray\s0_raybase.cpp">
+      <Filter>src\l1_ray</Filter>
+    </ClCompile>
+    <ClCompile Include="src\l1_ray\s1_converters.cpp">
+      <Filter>src\l1_ray</Filter>
+    </ClCompile>
+    <ClCompile Include="src\l1_ray\s2_configs.cpp">
+      <Filter>src\l1_ray</Filter>
+    </ClCompile>
+    <ClCompile Include="src\l0_def\s0_numerical.cpp">
+      <Filter>src\l0_def</Filter>
+    </ClCompile>
+    <ClCompile Include="src\l0_def\s1_global.cpp">
+      <Filter>src\l0_def</Filter>
+    </ClCompile>
+    <ClCompile Include="src\l0_def\s2_vec.cpp">
+      <Filter>src\l0_def</Filter>
+    </ClCompile>
+    <ClCompile Include="src\l0_def\s3_bigint.cpp">
+      <Filter>src\l0_def</Filter>
+    </ClCompile>
+    <ClCompile Include="src\l2_port\s0_portbase.cpp">
+      <Filter>src\l2_port</Filter>
+    </ClCompile>
+    <ClCompile Include="pch\pch.cpp">
+      <Filter>pch</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>
