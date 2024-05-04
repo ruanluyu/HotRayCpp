@@ -25,24 +25,23 @@ namespace hr::ray
 		};
 
 
-		bool add_config(const sptr<RayConfig>& config);
+		bool AddConfig(const sptr<RayConfig>& config);
 		
-		sptr<RayConfig> get_config(const hr_string& unique_name) const;
+		sptr<RayConfig> GetConfig(const char* unique_name) const;
 
-		void build_converter_graph();
+		void BuildConverterGraph();
 
-		sptr<BasicConverter> get_converter(const hr_string& from_ray_uname, const hr_string& to_ray_uname);
+		sptr<BasicConverter> GetConverter(const char* from_ray_uname, const char* to_ray_uname);
 
 		
 	private:
 		hr_unordered_map<hr_string, sptr<RayConfig>> ray_configs;
 
-		std::pair<hr_string, hr_string> combine_from_to_uname(const hr_string& from_ray_uname, const hr_string& to_ray_uname);
+		std::pair<hr_string, hr_string> _CombineFromToUname(const hr_string& from_ray_uname, const hr_string& to_ray_uname);
 
 		hr_unordered_map<std::pair<hr_string, hr_string>, ConverterFunction> converter_direct_graph;
 		hr_unordered_map<std::pair<hr_string, hr_string>, sptr<BasicConverter>> converter_path_graph;
 	};
-
 
 	extern GlobalRayConfigs global_configs;
 

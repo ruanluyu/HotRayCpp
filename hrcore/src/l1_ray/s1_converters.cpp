@@ -69,24 +69,24 @@ namespace hr::ray {
 		sizeof(T1) <= sizeof(RayData) && 
 		sizeof(T2) <= sizeof(RayData))
 	void cast_converter(const RayData& from_ray, RayData& to_ray) {
-		to_ray.set<T2>((T2)from_ray.get<T1>());
+		to_ray.Set<T2>((T2)from_ray.Get<T1>());
 	}
 
 #define CREATE_CAST_CONVERTER_IMP(FROM, TO) CONVERTER_FUNC_SIGNATURE(FROM, TO){cast_converter<FROM,TO>(from_ray, to_ray);}
 #define CREATE_CLAMPED_CAST_CONVERTER_IMP(FROM, TO) CONVERTER_FUNC_SIGNATURE(FROM, TO){\
-auto from = from_ray.get<FROM>();\
-if (from < TO##_min) to_ray.set(TO##_min);\
-else if (from > TO##_max) to_ray.set(TO##_max);\
-else to_ray.set((TO)from); }
+auto from = from_ray.Get<FROM>();\
+if (from < TO##_min) to_ray.Set(TO##_min);\
+else if (from > TO##_max) to_ray.Set(TO##_max);\
+else to_ray.Set((TO)from); }
 
 #define CREATE_CLAMPED_CAST_I2U_CONVERTER_IMP(FROM, TO) CONVERTER_FUNC_SIGNATURE(FROM, TO){\
-auto from = from_ray.get<FROM>();\
-if (from < 0) to_ray.set(0);\
-else to_ray.set((TO)from); }
+auto from = from_ray.Get<FROM>();\
+if (from < 0) to_ray.Set(0);\
+else to_ray.Set((TO)from); }
 #define CREATE_CLAMPED_CAST_U2I_CONVERTER_IMP(FROM, TO) CONVERTER_FUNC_SIGNATURE(FROM, TO){\
-auto from = from_ray.get<FROM>();\
-if (from > (FROM) TO##_max) to_ray.set(TO##_max);\
-else to_ray.set((TO)from); }
+auto from = from_ray.Get<FROM>();\
+if (from > (FROM) TO##_max) to_ray.Set(TO##_max);\
+else to_ray.Set((TO)from); }
 
 
 

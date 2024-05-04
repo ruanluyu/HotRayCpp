@@ -12,9 +12,7 @@
 #include <unordered_set>
 #include "s0_numerical.hpp"
 
-#ifdef HR_DEBUG
-#include <source_location>
-#endif
+
 
 namespace hr::def {
 
@@ -209,8 +207,8 @@ namespace hr::def {
 		ObjectBase();
 		~ObjectBase();
 
-		virtual void SetName(const hr_string& new_name);
-		virtual hr_string GetName() const;
+		virtual void SetName(const char* new_name);
+		virtual const char* GetName() const;
 
 		virtual void RemoveParent();
 
@@ -223,10 +221,10 @@ namespace hr::def {
 		virtual bool IsDestroyed() const;
 
 		template<class T>
-		requires (std::convertible_to<T*, ObjectBase*>)
-		static sptr<T> Create() {
+		requires (std::convertible_to<T, ObjectBase>)
+		static constexpr sptr<T> Create() {
 			auto ptr = hr_make_shared<T>();
-			ptr->self = ptr;
+			ptr->self = std::static_pointer_cast<ObjectBase>(ptr);
 			return ptr;
 		}
 
@@ -242,20 +240,41 @@ namespace hr::def {
 	};
 
 
+	template<class T>
+	requires (std::convertible_to<T, ObjectBase>)
+	sptr<T> CreateObject() {
+		return ObjectBase::Create<T>();
+	}
+
+	extern void DestroyObject(const ObjectBase::ObjectPointer& object);
 
 }
 
-
+#ifdef HR_DEBUG
+#include <source_location>
+#define FAST_LOG(MESSAGE) {const std::source_location& _hrdbg_location = std::source_location::current();\
+hr_stringstream _hrdbg_ss;\
+_hrdbg_ss <<"Debug log: "<< std::endl\
+	<< "file: "<<_hrdbg_location.file_name() << std::endl\
+	<< "line: "<<_hrdbg_location.line()\
+	<< ", column: "<<_hrdbg_location.column() << std::endl\
+	<< "function: "<<_hrdbg_location.function_name() << std::endl\
+	<< "message: "<< MESSAGE << std::endl;\
+hr::def::log_info(_hrdbg_ss.str().c_str());\
+}
+#else
+#define FAST_LOG(MESSAGE) {(void)(MESSAGE);}
+#endif
 
 #define DEBUG_FAST_LOG(MESSAGE) \
 		{BEGIN_DEBUG_CHUNK\
-			const std::source_location& _dbg_location = std::source_location::current();\
-			hr_stringstream _dbg_ss;\
-			_dbg_ss <<"Debug log: "<< std::endl\
-				<< "file: "<<_dbg_location.file_name() << std::endl\
-				<< "line: "<<_dbg_location.line() << std::endl\
-				<< "column: "<<_dbg_location.column() << std::endl\
-				<< "function: "<<_dbg_location.function_name() << std::endl\
-				<< "message: "<< MESSAGE << std::endl;\
-			hr::def::log_info(_dbg_ss.str().c_str());\
-		END_DEBUG_CHUNK}\
+			FAST_LOG(MESSAGE);\
+		END_DEBUG_CHUNK}
+
+#define DEBUG_ASSERT(BOOL_EXPRESSION, FAILED_MESSAGE) \
+		{BEGIN_DEBUG_CHUNK\
+			auto _hrdbg_assertion_res = (BOOL_EXPRESSION);\
+			if(!_hrdbg_assertion_res){\
+				FAST_LOG(FAILED_MESSAGE);\
+			}\
+		END_DEBUG_CHUNK}

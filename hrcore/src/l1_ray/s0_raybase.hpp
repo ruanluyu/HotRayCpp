@@ -18,19 +18,19 @@ namespace hr::ray {
 		template<typename T>
 		requires (sizeof(T) <= RAY_MEM_SIZE)
 		RayData(const T& val) : RayData() {
-			set(val);
+			Set(val);
 		}
 
 		template<typename T>
 		requires (sizeof(T) <= RAY_MEM_SIZE)
-		void set(const T& val) 
+		void Set(const T& val) 
 		{
 			*(reinterpret_cast<T*>(data)) = val;
 		}
 
 		template<typename T>
 		requires (sizeof(T) <= RAY_MEM_SIZE)
-		const T& get() const
+		const T& Get() const
 		{
 			return *reinterpret_cast<const T*>(data);
 		}

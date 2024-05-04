@@ -9,35 +9,7 @@
 namespace hr::ray {
 	GlobalRayConfigs global_configs;
 	
-	ConverterFunction get_converter(const hr_string& from_ray_uname, const hr_string& to_ray_uname)
-	{
-		{
-			auto from_config = global_configs.get_config(from_ray_uname);
-
-			if (!from_config) 
-				return nullptr;
-
-		
-			auto& to_list = from_config->converter_to_list;
-			auto find_res = to_list.find(to_ray_uname);
-			if (find_res != to_list.end()) return find_res->second;
-		}
-
-		{
-			auto to_config = global_configs.get_config(to_ray_uname);
-
-			if (!to_config)
-				return nullptr;
-
-
-			auto& from_list = to_config->converter_from_list;
-			auto find_res = from_list.find(to_ray_uname);
-			if (find_res != from_list.end()) return find_res->second;
-		}
-
-		return nullptr;
-	}
-	bool GlobalRayConfigs::add_config(const sptr<RayConfig>& config)
+	bool GlobalRayConfigs::AddConfig(const sptr<RayConfig>& config)
 	{
 		if (config == nullptr)
 		{
@@ -45,7 +17,7 @@ namespace hr::ray {
 			using namespace std;
 
 			if (has_warning_logger()) {
-				log_warning("nullptr is added to configs. At GlobalRayConfigs::add_config. ");
+				log_warning("nullptr is added to configs. At GlobalRayConfigs::AddConfig. ");
 			}
 			return false;
 		}
@@ -56,7 +28,7 @@ namespace hr::ray {
 
 			if (has_error_logger()) {
 				hr_stringstream ss;
-				ss << "Unique name of ray config collided. Unique name: " << config->unique_name << " has already existed. At GlobalRayConfigs::add_config. ";
+				ss << "Unique name of ray config collided. Unique name: " << config->unique_name << " has already existed. At GlobalRayConfigs::AddConfig. ";
 				log_error(ss.str().c_str());
 			}
 			return false;
@@ -66,14 +38,14 @@ namespace hr::ray {
 
 		return true;
 	}
-	sptr<GlobalRayConfigs::RayConfig> GlobalRayConfigs::get_config(const hr_string& unique_name) const
+	sptr<GlobalRayConfigs::RayConfig> GlobalRayConfigs::GetConfig(const char* unique_name) const
 	{
 		auto config_ite = ray_configs.find(unique_name);
 		if (config_ite == ray_configs.end()) return nullptr;
 		return config_ite->second;
 	}
 
-	void GlobalRayConfigs::build_converter_graph()
+	void GlobalRayConfigs::BuildConverterGraph()
 	{
 
 		converter_direct_graph.clear();
@@ -84,7 +56,7 @@ namespace hr::ray {
 			auto& from_converters = kv.second->converter_from_list;
 			for (auto& from_kv : from_converters)
 			{
-				auto key = combine_from_to_uname(from_kv.first, kv.first);
+				auto key = _CombineFromToUname(from_kv.first, kv.first);
 				converter_direct_graph.insert(std::pair(key, from_kv.second));
 			}
 		}
@@ -94,7 +66,7 @@ namespace hr::ray {
 			auto& to_converters = kv.second->converter_to_list;
 			for (auto& to_kv : to_converters)
 			{
-				auto key = combine_from_to_uname(kv.first, to_kv.first);
+				auto key = _CombineFromToUname(kv.first, to_kv.first);
 				converter_direct_graph.insert(std::pair(key, to_kv.second));
 			}
 		}
@@ -124,7 +96,7 @@ namespace hr::ray {
 
 		for (auto& kv : ray_configs)
 		{
-			auto key = combine_from_to_uname(kv.first, kv.first);
+			auto key = _CombineFromToUname(kv.first, kv.first);
 			auto path_ptr = hr_make_shared<BasicConverter>();
 			converter_path_graph.insert(std::pair(key, path_ptr));
 		}
@@ -161,14 +133,14 @@ namespace hr::ray {
 
 					if (new_path.size() >= 2)
 					{
-						auto direction_key = combine_from_to_uname(new_path[0], adj_uname);
+						auto direction_key = _CombineFromToUname(new_path[0], adj_uname);
 						if (converter_path_graph.count(direction_key) == 0)
 						{
 							auto combo = hr_make_shared<ComboConverter>();
 							
 							for (ui64 i = 0; i < new_path.size()-1; i++)
 							{
-								auto sub_dir_key = combine_from_to_uname(new_path[i], new_path[i + 1]);
+								auto sub_dir_key = _CombineFromToUname(new_path[i], new_path[i + 1]);
 								combo->Add(converter_direct_graph.at(sub_dir_key));
 							}
 							sptr<BasicConverter> converters_ptr = combo;
@@ -183,14 +155,14 @@ namespace hr::ray {
 		converter_path_graph.rehash(converter_path_graph.size() + 64);
 	}
 
-	sptr<BasicConverter> GlobalRayConfigs::get_converter(const hr_string& from_ray_uname, const hr_string& to_ray_uname)
+	sptr<BasicConverter> GlobalRayConfigs::GetConverter(const char* from_ray_uname, const char* to_ray_uname)
 	{
-		auto res = converter_path_graph.find(combine_from_to_uname(from_ray_uname, to_ray_uname));
+		auto res = converter_path_graph.find(_CombineFromToUname(from_ray_uname, to_ray_uname));
 		if (res == converter_path_graph.end()) return nullptr;
 		return res->second;
 	}
 
-	std::pair<hr_string, hr_string> GlobalRayConfigs::combine_from_to_uname(const hr_string& from_ray_uname, const hr_string& to_ray_uname)
+	std::pair<hr_string, hr_string> GlobalRayConfigs::_CombineFromToUname(const hr_string& from_ray_uname, const hr_string& to_ray_uname)
 	{
 		return std::pair(from_ray_uname, to_ray_uname);
 	}
@@ -290,18 +262,18 @@ namespace hr::ray {
 		{
 			auto ptr = hr_make_shared<cfg_t>();
 			ptr->unique_name = name;
-			global_configs.add_config(ptr);
+			global_configs.AddConfig(ptr);
 		}
 
 		for (auto& info : converter_infos)
 		{
-			auto config = global_configs.get_config(info.from);
+			auto config = global_configs.GetConfig(info.from);
 			auto& to_list = config->converter_to_list;
 			to_list[info.to] = info.converter;
 		}
 		
 
-		global_configs.build_converter_graph();
+		global_configs.BuildConverterGraph();
 	}
 
 

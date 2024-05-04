@@ -88,17 +88,31 @@ namespace hr::def {
 		if (global_configs.error) global_configs.error(error);
 	}
 
+	void DestroyObject(const ObjectBase::ObjectPointer& object)
+	{
+		ObjectBase::Destroy(object);
+	}
 
-#define ASSERT_OBJECT_NOT_DESTROYED DEBUG_FAST_LOG("You are calling a function of a destroyed object. ")
+
+#define ASSERT_OBJECT_NOT_DESTROYED  \
+	DEBUG_ASSERT(self != nullptr ,"You are calling a function of a destroyed object. ")
 
 
 	ObjectBase::ObjectBase() :name(), children(), parent(), self(){}
 	ObjectBase::~ObjectBase(){
+		BEGIN_DEBUG_CHUNK
+		{
+			hr_stringstream ss;
+			ss << "Deconstruct: " << this;
+			DEBUG_FAST_LOG(ss.str());
+		}
+		END_DEBUG_CHUNK
 	}
 
 
-	void ObjectBase::SetName(const hr_string& new_name)
+	void ObjectBase::SetName(const char* new_name)
 	{
+		ASSERT_OBJECT_NOT_DESTROYED;
 		if (name == nullptr)
 		{
 			name = hr_make_shared<hr_string>(new_name);
@@ -109,12 +123,15 @@ namespace hr::def {
 		}
 	}
 
-	hr_string ObjectBase::GetName() const
+	const char* ObjectBase::GetName() const
 	{
-		return name == nullptr ? hr_string("") : *name;
+		ASSERT_OBJECT_NOT_DESTROYED;
+		if (name == nullptr) return "";
+		return name->c_str();
 	}
 
 	void ObjectBase::RemoveParent() {
+		ASSERT_OBJECT_NOT_DESTROYED;
 		auto parent_ptr = parent.lock();
 		if (parent_ptr == nullptr) return;
 		if (parent_ptr->children == nullptr)
@@ -126,7 +143,7 @@ namespace hr::def {
 		parent.reset();
 	}
 
-	void ObjectBase::AddChild(sptr<ObjectBase>& child)
+	void ObjectBase::AddChild(ObjectPointer& child)
 	{
 		ASSERT_OBJECT_NOT_DESTROYED;
 		if (child == nullptr) return;
@@ -138,8 +155,7 @@ namespace hr::def {
 		children->insert(child);
 	}
 
-	
-	void ObjectBase::Destroy(const sptr<ObjectBase>& object)
+	void ObjectBase::Destroy(const ObjectPointer& object)
 	{
 		if (object == nullptr)
 		{
@@ -163,7 +179,7 @@ namespace hr::def {
 			children.clear();
 		}
 	}
-
+	
 
 	ObjectBase::ObjectPointer ObjectBase::GetPointerToSelf() const
 	{
@@ -179,5 +195,7 @@ namespace hr::def {
 	const ObjectBase::ChildrenContainer& ObjectBase::GetChildren() const {
 		return *children;
 	}
+
+	
 
 }
