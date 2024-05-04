@@ -4,10 +4,19 @@
 #include "l0_def/s2_vec.hpp"
 #include "l0_def/s3_bigint.hpp"
 #include "l1_ray/s2_configs.hpp"
+#include "l2_port/s0_portbase.hpp"
 
 #include <iostream>
 
-#define TEST_OUTPUT(varname) cout << #varname << ": "  << (varname) << endl
+bool test_enable_log = false;
+
+#define BEGIN_LOG_STATUS_AREA(ENABLE,OLD_VARNAME) { auto OLD_VARNAME = test_enable_log; test_enable_log = (ENABLE);{
+#define END_LOG_STATUS_AREA(OLD_VARNAME) }test_enable_log = OLD_VARNAME;}
+
+
+#define TEST_OUTPUT(varname) BEGIN_LOG_STATUS_AREA(false, _hrdbg_testoutput) \
+{auto _hrdbg_res = varname; cout << #varname << ": "  << _hrdbg_res << endl;} \
+END_LOG_STATUS_AREA(_hrdbg_testoutput)
 
 using error_signal_type = ui32;
 
@@ -18,7 +27,9 @@ using TestFunction = bool (*)();
 
 #define BEGIN_TEST(NAME) error_signal_type NAME(){ui32 check_point_pos = 0;
 
-#define TEST_ASSERT(BOOL_EXPRESSION) {check_point_pos++; if(!(BOOL_EXPRESSION)) {cout << "Assert failed: " <<  #BOOL_EXPRESSION << endl; return check_point_pos;}}
+#define TEST_ASSERT(BOOL_EXPRESSION) BEGIN_LOG_STATUS_AREA(false, _hrdbg_assert) \
+{check_point_pos++; if((BOOL_EXPRESSION)) {cout << "#" << check_point_pos <<" passed! Assertion contents: " <<  #BOOL_EXPRESSION << endl;} else {cout << "Assert failed: " <<  #BOOL_EXPRESSION << endl; return check_point_pos;}}\
+END_LOG_STATUS_AREA(_hrdbg_assert)
 
 #define END_TEST return 0;}
 
@@ -30,17 +41,28 @@ using TestFunction = bool (*)();
 using namespace std;
 using namespace hr::def;
 using namespace hr::ray;
+using namespace hr::port;
 
-bool test_enable_log = false;
+
 
 void* test_alloc_func(const ui64& size) {
 	auto newly = malloc(size);
-	if(test_enable_log) cout << "aloc: " << newly << " " << size << " bytes" << endl;
+	if (test_enable_log)
+	{
+		BEGIN_LOG_STATUS_AREA(false, test_alloc);
+		cout << "aloc: " << newly << " " << size << " bytes" << endl;
+		END_LOG_STATUS_AREA(test_alloc);
+	}
 	return newly;
 }
 
 void test_free_func(void* const& ptr) {
-	if (test_enable_log) cout << "free: " << ptr << endl;
+	if (test_enable_log)
+	{
+		BEGIN_LOG_STATUS_AREA(false, test_free);
+		cout << "free: " << ptr << endl;
+		END_LOG_STATUS_AREA(test_free);
+	}
 	void* copy = ptr;
 	free(copy);
 }
@@ -56,6 +78,7 @@ DEFINE_TEST(converter_test);
 DEFINE_TEST(memory_alloc_test);
 DEFINE_TEST(bigint_test);
 DEFINE_TEST(objectbase_test);
+DEFINE_TEST(port_test);
 
 int main()
 {
@@ -69,30 +92,56 @@ int main()
 
 	test_enable_log = true;
 
-	//RUN_TEST(numerical_test);
-	//RUN_TEST(converter_test);
-	//RUN_TEST(memory_alloc_test);
-	//RUN_TEST(bigint_test);
+	RUN_TEST(numerical_test);
+	RUN_TEST(converter_test);
+	RUN_TEST(memory_alloc_test);
+	RUN_TEST(bigint_test);
 	RUN_TEST(objectbase_test);
+	RUN_TEST(port_test);
 
 	cout << "Benchmark all done. " << endl;
+	test_enable_log = false;
 
 
 	int k = getchar();
 
-	test_enable_log = false;
 	return 0;
 }
+BEGIN_TEST(port_test)
+{
+	auto ipt = CreateObject<InPort>();
+	auto opt = CreateObject<OutPort>();
+
+	opt->SetRayType("i8");
+	ipt->SetRayType("ui16");
+
+	TEST_ASSERT(opt->TryConnectTo(ipt));
+
+	opt->GetDataRawPointer()->Set<i8>(-3i8);
+	opt->Send();
+	TEST_OUTPUT(ipt->GetDataRawPointer()->Get<ui16>());
+	TEST_ASSERT(ipt->GetDataRawPointer()->Get<ui16>() == 0ui16);
+}
+END_TEST
+
+
 BEGIN_TEST(objectbase_test)
 {
-	auto obj = ObjectBase::Create<ObjectBase>();
-	auto child = ObjectBase::Create<ObjectBase>();
+	{
+		auto obj = CreateObject<ObjectBase>();
+		auto child = CreateObject<ObjectBase>();
 
-	obj->AddChild(child);
+		obj->AddChild(child);
 
-	ObjectBase::Destroy(obj);
+		obj->SetName("Parent object");
+		child->SetName("Child object");
 
-	child->GetPointerToSelf();
+		TEST_OUTPUT(child->GetName());
+
+		ObjectBase::Destroy(obj);
+
+	}
+
 }
 END_TEST
 
@@ -216,7 +265,7 @@ BEGIN_TEST(converter_test)
 			{
 				auto info = action.actionInfo.convert;
 				cout << "convert from " << info.from.name << " to " << info.to.name << endl;
-				global_configs.get_converter(info.from.name, info.to.name)->Apply(info.from.data, info.to.data);
+				global_configs.GetConverter(info.from.name, info.to.name)->Apply(info.from.data, info.to.data);
 				TEST_ASSERT(info.to.data.operator==(info.right_answer));
 			}
 			break;
