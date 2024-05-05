@@ -235,6 +235,7 @@ namespace hr::def {
 		StringPointer name;
 		ObjectWeakPointer parent;
 		sptr<ChildrenContainer> children;
+		virtual void _OnDestroy();
 	private:
 		ObjectPointer self;
 	};

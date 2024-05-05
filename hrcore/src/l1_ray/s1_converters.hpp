@@ -8,36 +8,38 @@ using namespace hr::def;
 
 namespace hr::ray {
 
-
-	using ConverterFunction = void (*)(const RayData& from_ray, RayData& to_ray);
+	/// <summary>
+	/// 
+	/// </summary>
+	using MoveConverterFunction = void (*)(RayData& from_ray, RayData& to_ray);
 
 
 
 	class BasicConverter {
 	public:
-		virtual void Apply(const RayData& from_ray, RayData& to_ray);
+		virtual void Apply(RayData& from_ray, RayData& to_ray);
 	};
 
 	class SingleConverter :public BasicConverter {
 	public:
-		SingleConverter(ConverterFunction func);
-		void Apply(const RayData& from_ray, RayData& to_ray) override;
+		SingleConverter(MoveConverterFunction func);
+		void Apply(RayData& from_ray, RayData& to_ray) override;
 	private:
-		ConverterFunction func;
+		MoveConverterFunction func;
 	};
 
 
 	class ComboConverter : public BasicConverter {
 	public:
 		ComboConverter();
-		void Add(const ConverterFunction& newly);
-		void Apply(const RayData& from_ray, RayData& to_ray) override;
+		void Add(const MoveConverterFunction& newly);
+		void Apply(RayData& from_ray, RayData& to_ray) override;
 	private:
-		std::vector<ConverterFunction> converters;
+		std::vector<MoveConverterFunction> converters;
 	};
 
 #define CONVERTER_FUNC_NAME(FROM, TO) FROM ## _ ## TO ## _converter
-#define CONVERTER_FUNC_SIGNATURE(FROM, TO) void CONVERTER_FUNC_NAME(FROM,TO)(const RayData& from_ray, RayData& to_ray)
+#define CONVERTER_FUNC_SIGNATURE(FROM, TO) void CONVERTER_FUNC_NAME(FROM,TO)(RayData& from_ray, RayData& to_ray)
 
 #define CREATE_CONVERTER_API(FROM, TO) extern CONVERTER_FUNC_SIGNATURE(FROM, TO)
 

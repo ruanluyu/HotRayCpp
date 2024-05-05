@@ -168,16 +168,7 @@ namespace hr::def {
 			DEBUG_FAST_LOG(ss.str());
 			return;
 		}
-		object->self = nullptr;
-		if (object->children != nullptr)
-		{
-			ChildrenContainer& children = *object->children;
-			for (auto& child : children)
-			{
-				Destroy(child);
-			}
-			children.clear();
-		}
+		object->_OnDestroy();
 	}
 	
 
@@ -185,6 +176,20 @@ namespace hr::def {
 	{
 		ASSERT_OBJECT_NOT_DESTROYED;
 		return ObjectPointer(self);
+	}
+
+	void ObjectBase::_OnDestroy()
+	{
+		self = nullptr;
+		if (children != nullptr)
+		{
+			ChildrenContainer& children_ref = *children;
+			for (auto& child : children_ref)
+			{
+				Destroy(child);
+			}
+			children_ref.clear();
+		}
 	}
 
 

@@ -2,17 +2,17 @@
 #include "s1_converters.hpp"
 
 
-void hr::ray::BasicConverter::Apply(const RayData& from_ray, RayData& to_ray)
+void hr::ray::BasicConverter::Apply(RayData& from_ray, RayData& to_ray)
 {
 	memcpy(to_ray.data, from_ray.data, sizeof(to_ray.data));
 }
 
-hr::ray::SingleConverter::SingleConverter(ConverterFunction func):func(func)
+hr::ray::SingleConverter::SingleConverter(MoveConverterFunction func):func(func)
 {
 
 }
 
-void hr::ray::SingleConverter::Apply(const RayData& from_ray, RayData& to_ray)
+void hr::ray::SingleConverter::Apply(RayData& from_ray, RayData& to_ray)
 {
 	func(from_ray, to_ray);
 }
@@ -21,12 +21,12 @@ hr::ray::ComboConverter::ComboConverter() :converters()
 {
 }
 
-void hr::ray::ComboConverter::Add(const ConverterFunction& newly)
+void hr::ray::ComboConverter::Add(const MoveConverterFunction& newly)
 {
 	converters.push_back(newly);
 }
 
-void hr::ray::ComboConverter::Apply(const RayData& from_ray, RayData& to_ray)
+void hr::ray::ComboConverter::Apply(RayData& from_ray, RayData& to_ray)
 {
 	RayData buffer;
 	ui64 offset = 0;

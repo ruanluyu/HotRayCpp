@@ -221,7 +221,7 @@ namespace hr::ray {
 	struct _ConverterInfo {
 		const char* from;
 		const char* to;
-		ConverterFunction converter;
+		MoveConverterFunction converter;
 	};
 
 #define CONVERTER_INFO_CELL(FROM, TO) {#FROM, #TO, CONVERTER_FUNC_NAME(FROM, TO)},
@@ -255,6 +255,8 @@ namespace hr::ray {
 	};
 
 
+
+
 	void init_ray()
 	{
 		using cfg_t = GlobalRayConfigs::RayConfig;
@@ -277,8 +279,40 @@ namespace hr::ray {
 	}
 
 
-	GlobalRayConfigs::RayConfig::RayConfig(): unique_name(), converter_to_list(), converter_from_list()
+	GlobalRayConfigs::RayConfig::RayConfig() :
+		unique_name(),
+		converter_to_list(),
+		converter_from_list(),
+		copy_function(default_copy_function),
+		move_function(default_move_function),
+		init_function(default_init_function),
+		free_function(default_free_function)
 	{
 	}
+
+	void GlobalRayConfigs::RayConfig::default_init_function(RayData& data)
+	{
+		memset(&data, 0, sizeof(RayData));
+	}
+
+	void GlobalRayConfigs::RayConfig::default_free_function(RayData& data)
+	{
+		// For performance reason. 
+		// memset(&from, 0, sizeof(RayData));
+	}
+
+	void GlobalRayConfigs::RayConfig::default_copy_function(const RayData& from, RayData& to)
+	{
+		memcpy(&to, &from, sizeof(RayData));
+	}
+
+	void GlobalRayConfigs::RayConfig::default_move_function(RayData& from, RayData& to)
+	{
+		memcpy(&to, &from, sizeof(RayData));
+		// For performance reason. 
+		// memset(&from, 0, sizeof(RayData));
+	}
+
+
 
 }

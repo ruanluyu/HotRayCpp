@@ -14,41 +14,50 @@ namespace hr::port {
 		void _ConnectBetween(const ObjectPointer& from, const ObjectPointer& to);
 		virtual void _ConnectFrom(const ObjectPointer& other) = 0;
 
+		void _DisconnectBetween(const ObjectPointer& from, const ObjectPointer& to);
+		virtual void _DisconnectFrom(const ObjectPointer& other) = 0;
+
 	public:
 		PortBase();
 		virtual bool SetRayType(const char* uname);
 		virtual const char* GetRayUname() const;
 
 		virtual RayData* GetDataRawPointer();
+
 	};
 
-	class OutPort;
 
-	class InPort : public PortBase {
+	class SingleConnectionPort :public PortBase {
 	private:
-		wptr<OutPort> source_port;
 	protected:
+		sptr<PortBase> connected_port;
 		void _ConnectFrom(const ObjectPointer& other) override;
+		void _DisconnectFrom(const ObjectPointer& other) override;
+		void _OnDestroy() override;
+	public:
+		SingleConnectionPort();
+		virtual const sptr<PortBase>& GetConnectedPort() const;
+		virtual void Disconnect();
+	};
+
+
+	class InPort : public SingleConnectionPort {
+	private:
+	protected:
 	public:
 		InPort();
-		virtual const RayData& ReadData() const;
-		virtual const wptr<OutPort>& GetSourcePort() const;
 	};
 
-	class OutPort :public PortBase {
+
+	class OutPort :public SingleConnectionPort {
 	private:
-		wptr<InPort> target_port;
 		sptr<BasicConverter> converter;
 		sptr<BasicConverter> _GetConverterTo(const sptr<InPort>& target) const;
-		void _ForceConnectTo(const sptr<InPort>& target);
-		void _ConnectFrom(const ObjectPointer& other) override;
 	public:
 		OutPort();
 		virtual bool ConnectableTo(const sptr<InPort>& target) const;
 		virtual bool TryConnectTo(const sptr<InPort>& target);
-		virtual void Disconnect();
 
 		virtual void Send();
-		virtual const wptr<InPort>& GetTargetPort() const;
 	};
 }
