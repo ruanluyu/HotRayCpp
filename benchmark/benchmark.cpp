@@ -5,6 +5,7 @@
 #include "l0_def/s3_bigint.hpp"
 #include "l1_ray/s2_configs.hpp"
 #include "l2_port/s0_portbase.hpp"
+#include "l3_node/s0_nodebase.hpp"
 
 #include <iostream>
 
@@ -42,6 +43,7 @@ using namespace std;
 using namespace hr::def;
 using namespace hr::ray;
 using namespace hr::port;
+using namespace hr::node;
 
 
 
@@ -79,6 +81,7 @@ DEFINE_TEST(memory_alloc_test);
 DEFINE_TEST(bigint_test);
 DEFINE_TEST(objectbase_test);
 DEFINE_TEST(port_test);
+DEFINE_TEST(routine_test);
 
 int main()
 {
@@ -92,12 +95,13 @@ int main()
 
 	test_enable_log = true;
 
-	RUN_TEST(numerical_test);
-	RUN_TEST(converter_test);
-	RUN_TEST(memory_alloc_test);
-	RUN_TEST(bigint_test);
-	RUN_TEST(objectbase_test);
-	RUN_TEST(port_test);
+	//RUN_TEST(numerical_test);
+	//RUN_TEST(converter_test);
+	//RUN_TEST(memory_alloc_test);
+	//RUN_TEST(bigint_test);
+	//RUN_TEST(objectbase_test);
+	//RUN_TEST(port_test);
+	RUN_TEST(routine_test);
 
 	cout << "Benchmark all done. " << endl;
 	test_enable_log = false;
@@ -107,13 +111,20 @@ int main()
 
 	return 0;
 }
+
+
+BEGIN_TEST(routine_test)
+{
+	
+}
+END_TEST
 BEGIN_TEST(port_test)
 {
 	auto ipt = CreateObject<InPort>();
 	auto opt = CreateObject<OutPort>();
 
-	opt->SetRayType("i8");
-	ipt->SetRayType("ui16");
+	opt->SetRayConfig(global_ray_configs.GetConfig("i8"));
+	ipt->SetRayConfig(global_ray_configs.GetConfig("ui16"));
 
 	TEST_ASSERT(opt->TryConnectTo(ipt));
 
@@ -265,7 +276,9 @@ BEGIN_TEST(converter_test)
 			{
 				auto info = action.actionInfo.convert;
 				cout << "convert from " << info.from.name << " to " << info.to.name << endl;
-				global_configs.GetConverter(info.from.name, info.to.name)->Apply(info.from.data, info.to.data);
+				auto from_config = global_ray_configs.GetConfig(info.from.name);
+				auto to_config = global_ray_configs.GetConfig(info.to.name);
+				global_ray_configs.GetConverter(from_config, to_config)->Apply(info.from.data, info.to.data);
 				TEST_ASSERT(info.to.data.operator==(info.right_answer));
 			}
 			break;

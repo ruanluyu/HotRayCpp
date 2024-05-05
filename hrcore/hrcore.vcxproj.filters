@@ -42,11 +42,14 @@
     <ClInclude Include="src\l0_def\s3_bigint.hpp">
       <Filter>src\l0_def</Filter>
     </ClInclude>
-    <ClInclude Include="src\l2_port\s0_portbase.hpp">
+    <ClInclude Include="src\l2_port\s0_PortContainer.hpp">
       <Filter>src\l2_port</Filter>
     </ClInclude>
     <ClInclude Include="pch\pch.h">
       <Filter>pch</Filter>
+    </ClInclude>
+    <ClInclude Include="src\l3_node\s0_nodebase.hpp">
+      <Filter>src\l3_node</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -71,11 +74,14 @@
     <ClCompile Include="src\l0_def\s3_bigint.cpp">
       <Filter>src\l0_def</Filter>
     </ClCompile>
-    <ClCompile Include="src\l2_port\s0_portbase.cpp">
+    <ClCompile Include="src\l2_port\s0_PortContainer.cpp">
       <Filter>src\l2_port</Filter>
     </ClCompile>
     <ClCompile Include="pch\pch.cpp">
       <Filter>pch</Filter>
+    </ClCompile>
+    <ClCompile Include="src\l3_node\s0_nodebase.cpp">
+      <Filter>src\l3_node</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

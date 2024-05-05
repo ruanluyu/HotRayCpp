@@ -22,7 +22,7 @@ namespace hr::ray {
 
 	class SingleConverter :public BasicConverter {
 	public:
-		SingleConverter(MoveConverterFunction func);
+		SingleConverter(const MoveConverterFunction& func);
 		void Apply(RayData& from_ray, RayData& to_ray) override;
 	private:
 		MoveConverterFunction func;
@@ -32,10 +32,10 @@ namespace hr::ray {
 	class ComboConverter : public BasicConverter {
 	public:
 		ComboConverter();
-		void Add(const MoveConverterFunction& newly);
+		void Add(const BasicConverter& newly);
 		void Apply(RayData& from_ray, RayData& to_ray) override;
 	private:
-		std::vector<MoveConverterFunction> converters;
+		hr_vector<BasicConverter> converters;
 	};
 
 #define CONVERTER_FUNC_NAME(FROM, TO) FROM ## _ ## TO ## _converter

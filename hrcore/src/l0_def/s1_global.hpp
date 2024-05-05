@@ -13,7 +13,6 @@
 #include "s0_numerical.hpp"
 
 
-
 namespace hr::def {
 
 	
@@ -235,7 +234,7 @@ namespace hr::def {
 		StringPointer name;
 		ObjectWeakPointer parent;
 		sptr<ChildrenContainer> children;
-		virtual void _OnDestroy();
+		virtual void OnDestroy();
 	private:
 		ObjectPointer self;
 	};
@@ -255,12 +254,12 @@ namespace hr::def {
 #include <source_location>
 #define FAST_LOG(MESSAGE) {const std::source_location& _hrdbg_location = std::source_location::current();\
 hr_stringstream _hrdbg_ss;\
-_hrdbg_ss <<"Debug log: "<< std::endl\
+_hrdbg_ss <<"Debug log: --------------"<< std::endl\
 	<< "file: "<<_hrdbg_location.file_name() << std::endl\
 	<< "line: "<<_hrdbg_location.line()\
 	<< ", column: "<<_hrdbg_location.column() << std::endl\
 	<< "function: "<<_hrdbg_location.function_name() << std::endl\
-	<< "message: "<< MESSAGE << std::endl;\
+	<< "message: ----------------"<<std::endl<< MESSAGE << std::endl << "=========================" <<std::endl;\
 hr::def::log_info(_hrdbg_ss.str().c_str());\
 }
 #else

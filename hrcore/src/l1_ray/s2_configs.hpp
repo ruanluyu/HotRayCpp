@@ -24,10 +24,7 @@ namespace hr::ray
 			copy_function_type copy_function;
 			move_function_type move_function;
 
-			static void default_init_function(RayData& data);
-			static void default_free_function(RayData& data);
-			static void default_copy_function(const RayData& from, RayData& to);
-			static void default_move_function(RayData& from, RayData& to);
+			
 
 			hr_unordered_map<hr_string, MoveConverterFunction> converter_to_list;
 			hr_unordered_map<hr_string, MoveConverterFunction> converter_from_list;
@@ -40,7 +37,7 @@ namespace hr::ray
 
 		void BuildConverterGraph();
 
-		sptr<BasicConverter> GetConverter(const char* from_ray_uname, const char* to_ray_uname);
+		sptr<BasicConverter> GetConverter(const sptr<RayConfig>& from_ray, const sptr<RayConfig>& to_ray);
 
 		
 	private:
@@ -52,7 +49,7 @@ namespace hr::ray
 		hr_unordered_map<std::pair<hr_string, hr_string>, sptr<BasicConverter>> converter_path_graph;
 	};
 
-	extern GlobalRayConfigs global_configs;
+	extern GlobalRayConfigs global_ray_configs;
 
 	
 

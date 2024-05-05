@@ -6,42 +6,44 @@
 namespace hr::port {
 	using namespace hr::ray;
 	using namespace hr::def;
-	class PortBase :public ObjectBase {
+	class PortContainer :public ObjectBase {
 	protected:
-		sptr<GlobalRayConfigs::RayConfig> ray_config;
-		RayData data;
-
-		void _ConnectBetween(const ObjectPointer& from, const ObjectPointer& to);
-		virtual void _ConnectFrom(const ObjectPointer& other) = 0;
-
-		void _DisconnectBetween(const ObjectPointer& from, const ObjectPointer& to);
-		virtual void _DisconnectFrom(const ObjectPointer& other) = 0;
-
+		void OnDestroy() override;
 	public:
-		PortBase();
-		virtual bool SetRayType(const char* uname);
-		virtual const char* GetRayUname() const;
-
-		virtual RayData* GetDataRawPointer();
-
+		PortContainer();
+		virtual void DisconnectAll() = 0;
 	};
 
 
-	class SingleConnectionPort :public PortBase {
+	class SinglePort :public PortContainer {
+		using ConfigType = GlobalRayConfigs::RayConfig;
 	private:
 	protected:
-		sptr<PortBase> connected_port;
-		void _ConnectFrom(const ObjectPointer& other) override;
-		void _DisconnectFrom(const ObjectPointer& other) override;
-		void _OnDestroy() override;
+		RayData data;
+		sptr<SinglePort> connected_port;
+		sptr<GlobalRayConfigs::RayConfig> ray_config;
+
+		void _ConnectBetween(const ObjectPointer& from, const ObjectPointer& to);
+		virtual void _ConnectFrom(const ObjectPointer& other);
+
+		void _DisconnectBetween(const ObjectPointer& from, const ObjectPointer& to);
+		virtual void _DisconnectFrom(const ObjectPointer& other);
+
+		
 	public:
-		SingleConnectionPort();
-		virtual const sptr<PortBase>& GetConnectedPort() const;
-		virtual void Disconnect();
+		virtual bool SetRayConfig(const sptr<ConfigType>& config);
+		virtual const sptr<ConfigType>& GetRayConfig() const;
+
+		SinglePort();
+		virtual const sptr<SinglePort>& GetConnectedPort() const;
+		void DisconnectAll() override;
+
+
+		virtual RayData* GetDataRawPointer();
 	};
 
 
-	class InPort : public SingleConnectionPort {
+	class InPort : public SinglePort {
 	private:
 	protected:
 	public:
@@ -49,7 +51,7 @@ namespace hr::port {
 	};
 
 
-	class OutPort :public SingleConnectionPort {
+	class OutPort :public SinglePort {
 	private:
 		sptr<BasicConverter> converter;
 		sptr<BasicConverter> _GetConverterTo(const sptr<InPort>& target) const;
@@ -60,4 +62,15 @@ namespace hr::port {
 
 		virtual void Send();
 	};
+
+	template<class SingleT>
+	requires std::convertible_to<SingleT, SinglePort>
+	class PortArray {
+	private:
+	protected:
+		hr_vector<SingleT> port_list;
+	public:
+		
+	};
+
 }

@@ -156,6 +156,7 @@
     <ClInclude Include="src\l1_ray\s1_converters.hpp" />
     <ClInclude Include="src\l1_ray\s2_configs.hpp" />
     <ClInclude Include="src\l2_port\s0_portbase.hpp" />
+    <ClInclude Include="src\l3_node\s0_nodebase.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch\pch.cpp">
@@ -170,6 +171,7 @@
     <ClCompile Include="src\l1_ray\s1_converters.cpp" />
     <ClCompile Include="src\l1_ray\s2_configs.cpp" />
     <ClCompile Include="src\l2_port\s0_portbase.cpp" />
+    <ClCompile Include="src\l3_node\s0_nodebase.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

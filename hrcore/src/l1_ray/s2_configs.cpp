@@ -7,7 +7,7 @@
 #include "l0_def/s1_global.hpp"
 
 namespace hr::ray {
-	GlobalRayConfigs global_configs;
+	GlobalRayConfigs global_ray_configs;
 	
 	bool GlobalRayConfigs::AddConfig(const sptr<RayConfig>& config)
 	{
@@ -141,7 +141,7 @@ namespace hr::ray {
 							for (ui64 i = 0; i < new_path.size()-1; i++)
 							{
 								auto sub_dir_key = _CombineFromToUname(new_path[i], new_path[i + 1]);
-								combo->Add(converter_direct_graph.at(sub_dir_key));
+								combo->Add(SingleConverter(converter_direct_graph.at(sub_dir_key)));
 							}
 							sptr<BasicConverter> converters_ptr = combo;
 							converter_path_graph[direction_key] = converters_ptr;
@@ -155,9 +155,9 @@ namespace hr::ray {
 		converter_path_graph.rehash(converter_path_graph.size() + 64);
 	}
 
-	sptr<BasicConverter> GlobalRayConfigs::GetConverter(const char* from_ray_uname, const char* to_ray_uname)
+	sptr<BasicConverter> GlobalRayConfigs::GetConverter(const sptr<RayConfig>& from_ray, const sptr<RayConfig>& to_ray)
 	{
-		auto res = converter_path_graph.find(_CombineFromToUname(from_ray_uname, to_ray_uname));
+		auto res = converter_path_graph.find(_CombineFromToUname(from_ray->unique_name, to_ray->unique_name));
 		if (res == converter_path_graph.end()) return nullptr;
 		return res->second;
 	}
@@ -264,20 +264,43 @@ namespace hr::ray {
 		{
 			auto ptr = hr_make_shared<cfg_t>();
 			ptr->unique_name = name;
-			global_configs.AddConfig(ptr);
+			global_ray_configs.AddConfig(ptr);
 		}
 
 		for (auto& info : converter_infos)
 		{
-			auto config = global_configs.GetConfig(info.from);
+			auto config = global_ray_configs.GetConfig(info.from);
 			auto& to_list = config->converter_to_list;
 			to_list[info.to] = info.converter;
 		}
 		
 
-		global_configs.BuildConverterGraph();
+		global_ray_configs.BuildConverterGraph();
 	}
 
+
+	static void default_init_function(RayData& data)
+	{
+		memset(&data, 0, sizeof(RayData));
+	}
+
+	static void default_free_function(RayData& data)
+	{
+		// For performance reason. 
+		// memset(&from, 0, sizeof(RayData));
+	}
+
+	static void default_copy_function(const RayData& from, RayData& to)
+	{
+		memcpy(&to, &from, sizeof(RayData));
+	}
+
+	static void default_move_function(RayData& from, RayData& to)
+	{
+		memcpy(&to, &from, sizeof(RayData));
+		// For performance reason. 
+		// memset(&from, 0, sizeof(RayData));
+	}
 
 	GlobalRayConfigs::RayConfig::RayConfig() :
 		unique_name(),
@@ -290,28 +313,6 @@ namespace hr::ray {
 	{
 	}
 
-	void GlobalRayConfigs::RayConfig::default_init_function(RayData& data)
-	{
-		memset(&data, 0, sizeof(RayData));
-	}
-
-	void GlobalRayConfigs::RayConfig::default_free_function(RayData& data)
-	{
-		// For performance reason. 
-		// memset(&from, 0, sizeof(RayData));
-	}
-
-	void GlobalRayConfigs::RayConfig::default_copy_function(const RayData& from, RayData& to)
-	{
-		memcpy(&to, &from, sizeof(RayData));
-	}
-
-	void GlobalRayConfigs::RayConfig::default_move_function(RayData& from, RayData& to)
-	{
-		memcpy(&to, &from, sizeof(RayData));
-		// For performance reason. 
-		// memset(&from, 0, sizeof(RayData));
-	}
 
 
 

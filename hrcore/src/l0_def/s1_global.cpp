@@ -168,7 +168,7 @@ namespace hr::def {
 			DEBUG_FAST_LOG(ss.str());
 			return;
 		}
-		object->_OnDestroy();
+		object->OnDestroy();
 	}
 	
 
@@ -178,7 +178,7 @@ namespace hr::def {
 		return ObjectPointer(self);
 	}
 
-	void ObjectBase::_OnDestroy()
+	void ObjectBase::OnDestroy()
 	{
 		self = nullptr;
 		if (children != nullptr)
