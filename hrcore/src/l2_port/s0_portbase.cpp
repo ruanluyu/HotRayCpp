@@ -40,7 +40,7 @@ namespace hr::port{
 		return true;
 	}
 
-	const sptr<SinglePort::ConfigType>& SinglePort::GetRayConfig() const
+	const sptr<ConfigType>& SinglePort::GetRayConfig() const
 	{
 		return ray_config;
 	}
@@ -94,6 +94,12 @@ namespace hr::port{
 		if (other != connected_port) return;
 		connected_port = nullptr;
 	}
+	void SinglePort::OnDestroy()
+	{
+		if (ray_config != nullptr)
+			ray_config->free_function(data);
+		PortContainer::OnDestroy();
+	}
 	void PortContainer::OnDestroy()
 	{
 		DisconnectAll();
@@ -112,6 +118,6 @@ namespace hr::port{
 	}
 	void SinglePort::DisconnectAll()
 	{
-		_DisconnectBetween(GetPointerToSelf(), connected_port);
+		if(connected_port != nullptr) _DisconnectBetween(GetPointerToSelf(), connected_port);
 	}
 }

@@ -98,7 +98,16 @@ namespace hr::def {
 	DEBUG_ASSERT(self != nullptr ,"You are calling a function of a destroyed object. ")
 
 
-	ObjectBase::ObjectBase() :name(), children(), parent(), self(){}
+	ObjectBase::ObjectBase() :name(), children(), parent(), self()
+	{
+		BEGIN_DEBUG_CHUNK
+		{
+			hr_stringstream ss;
+			ss << "Construct: " << this;
+			DEBUG_FAST_LOG(ss.str());
+		}
+		END_DEBUG_CHUNK
+	}
 	ObjectBase::~ObjectBase(){
 		BEGIN_DEBUG_CHUNK
 		{

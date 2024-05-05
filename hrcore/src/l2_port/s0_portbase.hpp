@@ -14,9 +14,9 @@ namespace hr::port {
 		virtual void DisconnectAll() = 0;
 	};
 
+	using ConfigType = GlobalRayConfigs::RayConfig;
 
 	class SinglePort :public PortContainer {
-		using ConfigType = GlobalRayConfigs::RayConfig;
 	private:
 	protected:
 		RayData data;
@@ -29,7 +29,7 @@ namespace hr::port {
 		void _DisconnectBetween(const ObjectPointer& from, const ObjectPointer& to);
 		virtual void _DisconnectFrom(const ObjectPointer& other);
 
-		
+		void OnDestroy() override;
 	public:
 		virtual bool SetRayConfig(const sptr<ConfigType>& config);
 		virtual const sptr<ConfigType>& GetRayConfig() const;
@@ -65,12 +65,69 @@ namespace hr::port {
 
 	template<class SingleT>
 	requires std::convertible_to<SingleT, SinglePort>
-	class PortArray {
-	private:
+	class PortArray : public PortContainer {
 	protected:
-		hr_vector<SingleT> port_list;
-	public:
+		hr_vector<sptr<SingleT>> port_list;
+		sptr<GlobalRayConfigs::RayConfig> ray_config;
+
+		sptr<SingleT> _CreatePort()
+		{
+			auto new_obj = CreateObject<SingleT>();
+			auto casted_obj_ptr = std::static_pointer_cast<ObjectBase>(new_obj);
+			AddChild(casted_obj_ptr);
+			new_obj->SetRayConfig(ray_config);
+			return new_obj;
+		}
+
 		
+	public:
+		bool SetRayConfig(const sptr<ConfigType>& config)
+		{
+			ray_config = config;
+		}
+
+
+		void SetSize(const ui64& size) {
+			if (size == port_list.size()) return;
+			auto old_size = port_list.size();
+			if (size > port_list.size())
+			{
+				port_list.reserve(size);
+				
+				for (ui64 i = 0; i < size - old_size; i++)
+				{
+					port_list.push_back(_CreatePort());
+				}
+			}
+			else
+			{
+				for (ui64 i = size; i < old_size; i++)
+				{
+					DestroyObject(port_list[i]);
+				}
+				port_list.erase(port_list.begin() + size, port_list.end());
+			}
+		}
+
+		ui64 GetSize() const {
+			return port_list.size();
+		}
+
+		const sptr<SingleT>& GetPort(const ui64& index)
+		{
+			return port_list.at(index);
+		}
+
+		void DisconnectAll() override
+		{
+			for (auto& port : port_list)
+			{
+				port->DisconnectAll();
+			}
+		}
 	};
+
+	using InPortArray = PortArray<InPort>;
+	using OutPortArray = PortArray<OutPort>;
 
 }

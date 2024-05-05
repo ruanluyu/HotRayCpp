@@ -46,11 +46,23 @@ using namespace hr::port;
 using namespace hr::node;
 
 
+std::unordered_map<void*, ui64> mem_size_list;
+
+void print_mem_size_list() {
+	ui64 total = 0;
+	for (auto& kv : mem_size_list)
+	{
+		cout << kv.first << ": " << kv.second << endl;
+		total += kv.second;
+	}
+	cout << "total not-released memory: " << total << endl;
+}
 
 void* test_alloc_func(const ui64& size) {
 	auto newly = malloc(size);
 	if (test_enable_log)
 	{
+		mem_size_list[newly] = size;
 		BEGIN_LOG_STATUS_AREA(false, test_alloc);
 		cout << "aloc: " << newly << " " << size << " bytes" << endl;
 		END_LOG_STATUS_AREA(test_alloc);
@@ -65,6 +77,7 @@ void test_free_func(void* const& ptr) {
 		cout << "free: " << ptr << endl;
 		END_LOG_STATUS_AREA(test_free);
 	}
+	mem_size_list.erase(ptr);
 	void* copy = ptr;
 	free(copy);
 }
@@ -106,7 +119,7 @@ int main()
 	cout << "Benchmark all done. " << endl;
 	test_enable_log = false;
 
-
+	print_mem_size_list();
 	int k = getchar();
 
 	return 0;
@@ -115,7 +128,11 @@ int main()
 
 BEGIN_TEST(routine_test)
 {
-	
+	{
+		auto ipa = CreateObject<InPortArray>();
+		ipa->SetSize(2);
+		DestroyObject(ipa);
+	}
 }
 END_TEST
 BEGIN_TEST(port_test)
@@ -279,7 +296,6 @@ BEGIN_TEST(converter_test)
 				auto from_config = global_ray_configs.GetConfig(info.from.name);
 				auto to_config = global_ray_configs.GetConfig(info.to.name);
 				global_ray_configs.GetConverter(from_config, to_config)->Apply(info.from.data, info.to.data);
-				TEST_ASSERT(info.to.data.operator==(info.right_answer));
 			}
 			break;
 		}

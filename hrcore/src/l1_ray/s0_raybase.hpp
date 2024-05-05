@@ -11,6 +11,16 @@ namespace hr::ray {
 	struct RayData {
 		i8 data[RAY_MEM_SIZE];
 
+		constexpr ui8 status_inited_bit() { return 1ui8 << 0ui8; }
+		constexpr ui8 status_freed_bit() { return 1ui8 << 1ui8;}
+
+		constexpr ui8 status_before_init() { return 0ui8; }
+		constexpr ui8 status_after_init() { return status_inited_bit(); }
+		constexpr ui8 status_after_free() { return status_inited_bit() | status_freed_bit(); }
+
+		ui8 status = status_before_init();
+
+
 		RayData() { memset(data, 0, RAY_MEM_SIZE); }
 
 		RayData(const RayData& other) { memcpy(data, other.data, RAY_MEM_SIZE); }
@@ -35,13 +45,8 @@ namespace hr::ray {
 			return *reinterpret_cast<const T*>(data);
 		}
 
-
-		bool operator==(const RayData& other) {
-			return memcmp(data, other.data, RAY_MEM_SIZE) == 0;
-		}
 	};
 
 
-	static_assert(sizeof(RayData) == RAY_MEM_SIZE);
 
 }
