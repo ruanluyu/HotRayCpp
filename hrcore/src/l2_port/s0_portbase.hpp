@@ -31,7 +31,7 @@ namespace hr::port {
 
 		void OnDestroy() override;
 	public:
-		virtual bool SetRayConfig(const sptr<ConfigType>& config);
+		virtual void SetRayConfig(const sptr<ConfigType>& config);
 		virtual const sptr<ConfigType>& GetRayConfig() const;
 
 		SinglePort();
@@ -63,9 +63,24 @@ namespace hr::port {
 		virtual void Send();
 	};
 
-	template<class SingleT>
-	requires std::convertible_to<SingleT, SinglePort>
-	class PortArray : public PortContainer {
+	class PortCollectionBase : public PortContainer {
+	public:
+		virtual ui64 GetSize() const = 0;
+		virtual void RemoveAt(const ui64& index) = 0;
+	};
+
+	class PortArrayBase :public PortCollectionBase {
+	public:
+		virtual void SetSize(const ui64& size) = 0;
+		virtual void SetRayConfig(const sptr<ConfigType>& config) = 0;
+	};
+
+
+	template<class T>
+	concept SinglePortConcept = std::derived_from<T, SinglePort>;
+
+	template<SinglePortConcept SingleT>
+	class PortArray : public PortArrayBase {
 	protected:
 		hr_vector<sptr<SingleT>> port_list;
 		sptr<GlobalRayConfigs::RayConfig> ray_config;
@@ -81,13 +96,13 @@ namespace hr::port {
 
 		
 	public:
-		bool SetRayConfig(const sptr<ConfigType>& config)
+		void SetRayConfig(const sptr<ConfigType>& config) override
 		{
 			ray_config = config;
 		}
 
 
-		void SetSize(const ui64& size) {
+		void SetSize(const ui64& size) override{
 			if (size == port_list.size()) return;
 			auto old_size = port_list.size();
 			if (size > port_list.size())
@@ -109,13 +124,20 @@ namespace hr::port {
 			}
 		}
 
-		ui64 GetSize() const {
+		ui64 GetSize() const override {
 			return port_list.size();
 		}
 
-		const sptr<SingleT>& GetPort(const ui64& index)
+		const sptr<SingleT>& GetPortAt(const ui64& index)
 		{
 			return port_list.at(index);
+		}
+
+		void RemoveAt(const ui64& index) override {
+			auto target = port_list[index];
+			port_list.erase(port_list.begin() + index);
+			target->DisconnectAll();
+			DestroyObject(target);
 		}
 
 		void DisconnectAll() override
@@ -129,5 +151,67 @@ namespace hr::port {
 
 	using InPortArray = PortArray<InPort>;
 	using OutPortArray = PortArray<OutPort>;
+
+	template<class T, class SingleT>
+	concept PortArrayConcept = SinglePortConcept<SingleT> && std::derived_from<T, PortArray<SingleT>>;
+
+
+
+	
+
+	template<SinglePortConcept SingleT>
+	class PortCollection;
+
+	template<class T, class SingleT>
+	concept PortCollectionConcept = SinglePortConcept<SingleT> && std::derived_from<T, PortCollection<SingleT>>;
+
+	template<class T, class SingleT>
+	concept ContainerConcept =
+		std::derived_from<T, PortContainer> && (
+		SinglePortConcept<T> ||
+		PortArrayConcept<T, SingleT> ||
+		PortCollectionConcept<T, SingleT>);
+
+	template<SinglePortConcept SingleT>
+	class PortCollection : public PortCollectionBase {
+		using ArrayT = PortArray<SingleT>;
+		using PortListContainer = hr_vector<sptr<PortContainer>>;
+	private:
+		PortListContainer port_list;
+	protected:
+	public:
+		void DisconnectAll() override {
+			for (auto& port : port_list)
+			{
+				port->DisconnectAll();
+			}
+		}
+		PortCollection():port_list() {}
+
+		template<ContainerConcept<SingleT> ContainerT>
+		void Add(const sptr<ContainerT>& port)
+		{
+			AddChild(port);
+			port_list.push_back(std::static_pointer_cast<PortContainer>(port));
+		}
+
+		void RemoveAt(const ui64& index) override
+		{
+			auto target = port_list[index];
+			port_list.erase(port_list.begin() + index);
+			target->DisconnectAll();
+			DestroyObject(target);
+		}
+
+		const sptr<PortContainer>& GetPortAt(const ui64& index) const {
+			return port_list[index];
+		}
+
+		ui64 GetSize() const override { return port_list.size(); }
+	};
+
+
+	using InPortCollection = PortCollection<InPort>;
+	using OutPortCollection = PortCollection<OutPort>;
 
 }

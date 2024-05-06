@@ -211,7 +211,14 @@ namespace hr::def {
 
 		virtual void RemoveParent();
 
-		virtual void AddChild(ObjectPointer& child);
+		
+
+		template<class T>
+			requires std::derived_from<T, ObjectBase>
+		void AddChild(const sptr<T>& child)
+		{
+			_AddChild(std::static_pointer_cast<ObjectBase>(child));
+		}
 
 		const ChildrenContainer& GetChildren() const;
 
@@ -220,10 +227,12 @@ namespace hr::def {
 		virtual bool IsDestroyed() const;
 
 		template<class T>
-		requires (std::convertible_to<T, ObjectBase>)
+		requires (std::derived_from<T, ObjectBase>)
 		static constexpr sptr<T> Create() {
 			auto ptr = hr_make_shared<T>();
-			ptr->self = std::static_pointer_cast<ObjectBase>(ptr);
+			auto ptr_objref = std::static_pointer_cast<ObjectBase>(ptr);
+			ptr_objref->self = ptr_objref;
+			ptr_objref->OnCreate();
 			return ptr;
 		}
 
@@ -235,13 +244,15 @@ namespace hr::def {
 		ObjectWeakPointer parent;
 		sptr<ChildrenContainer> children;
 		virtual void OnDestroy();
+		virtual void OnCreate();
+		virtual void _AddChild(const ObjectPointer& child);
 	private:
 		ObjectPointer self;
 	};
 
 
 	template<class T>
-	requires (std::convertible_to<T, ObjectBase>)
+	requires (std::derived_from<T, ObjectBase>)
 	sptr<T> CreateObject() {
 		return ObjectBase::Create<T>();
 	}

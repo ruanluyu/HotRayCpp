@@ -152,7 +152,7 @@ namespace hr::def {
 		parent.reset();
 	}
 
-	void ObjectBase::AddChild(ObjectPointer& child)
+	void ObjectBase::_AddChild(const ObjectPointer& child)
 	{
 		ASSERT_OBJECT_NOT_DESTROYED;
 		if (child == nullptr) return;
@@ -199,6 +199,10 @@ namespace hr::def {
 			}
 			children_ref.clear();
 		}
+	}
+
+	void ObjectBase::OnCreate()
+	{
 	}
 
 

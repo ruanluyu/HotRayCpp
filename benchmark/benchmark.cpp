@@ -113,7 +113,7 @@ int main()
 	//RUN_TEST(memory_alloc_test);
 	//RUN_TEST(bigint_test);
 	//RUN_TEST(objectbase_test);
-	//RUN_TEST(port_test);
+	RUN_TEST(port_test);
 	RUN_TEST(routine_test);
 
 	cout << "Benchmark all done. " << endl;
@@ -129,26 +129,50 @@ int main()
 BEGIN_TEST(routine_test)
 {
 	{
-		auto ipa = CreateObject<InPortArray>();
-		ipa->SetSize(2);
-		DestroyObject(ipa);
+		
 	}
 }
 END_TEST
 BEGIN_TEST(port_test)
 {
-	auto ipt = CreateObject<InPort>();
-	auto opt = CreateObject<OutPort>();
+	{
+		cout << "IP/OP test" << endl;
+		auto ipt = CreateObject<InPort>();
+		auto opt = CreateObject<OutPort>();
 
-	opt->SetRayConfig(global_ray_configs.GetConfig("i8"));
-	ipt->SetRayConfig(global_ray_configs.GetConfig("ui16"));
+		opt->SetRayConfig(global_ray_configs.GetConfig("i8"));
+		ipt->SetRayConfig(global_ray_configs.GetConfig("ui16"));
 
-	TEST_ASSERT(opt->TryConnectTo(ipt));
+		TEST_ASSERT(opt->TryConnectTo(ipt));
 
-	opt->GetDataRawPointer()->Set<i8>(-3i8);
-	opt->Send();
-	TEST_OUTPUT(ipt->GetDataRawPointer()->Get<ui16>());
-	TEST_ASSERT(ipt->GetDataRawPointer()->Get<ui16>() == 0ui16);
+		opt->GetDataRawPointer()->Set<i8>(-3i8);
+		opt->Send();
+		TEST_OUTPUT(ipt->GetDataRawPointer()->Get<ui16>());
+		TEST_ASSERT(ipt->GetDataRawPointer()->Get<ui16>() == 0ui16);
+
+		DestroyObject(ipt);
+		DestroyObject(opt);
+	}
+	
+
+	{
+		cout << "IPA test" << endl;
+		auto ipa = CreateObject<InPortArray>();
+		ipa->SetSize(2);
+		DestroyObject(ipa);
+	}
+
+	{
+		cout << "IPC test" << endl;
+		auto ipc = CreateObject<InPortCollection>();
+
+		ipc->Add(CreateObject<InPort>());
+		ipc->Add(CreateObject<InPortArray>());
+		ipc->Add(CreateObject<InPortCollection>());
+
+		DestroyObject(ipc);
+	}
+	
 }
 END_TEST
 

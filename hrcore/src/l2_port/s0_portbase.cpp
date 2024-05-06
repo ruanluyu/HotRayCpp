@@ -28,16 +28,17 @@ namespace hr::port{
 	PortContainer::PortContainer()
 	{}
 
-	bool SinglePort::SetRayConfig(const sptr<ConfigType>&config)
+	void SinglePort::SetRayConfig(const sptr<ConfigType>&config)
 	{
-		if (config == nullptr) return false;
 		if (ray_config != nullptr)
 		{
 			ray_config->free_function(data);
 		}
 		ray_config = config;
-		config->init_function(data);
-		return true;
+		if (ray_config != nullptr)
+		{
+			ray_config->init_function(data);
+		}
 	}
 
 	const sptr<ConfigType>& SinglePort::GetRayConfig() const

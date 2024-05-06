@@ -141,7 +141,7 @@ namespace hr::ray {
 							for (ui64 i = 0; i < new_path.size()-1; i++)
 							{
 								auto sub_dir_key = _CombineFromToUname(new_path[i], new_path[i + 1]);
-								combo->Add(SingleConverter(converter_direct_graph.at(sub_dir_key)));
+								combo->Add(converter_direct_graph.at(sub_dir_key));
 							}
 							sptr<BasicConverter> converters_ptr = combo;
 							converter_path_graph[direction_key] = converters_ptr;

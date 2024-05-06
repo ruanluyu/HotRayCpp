@@ -20,7 +20,7 @@ hr::ray::ComboConverter::ComboConverter() :converters()
 {
 }
 
-void hr::ray::ComboConverter::Add(const BasicConverter& newly)
+void hr::ray::ComboConverter::Add(const MoveConverterFunction& newly)
 {
 	converters.push_back(newly);
 }
@@ -33,11 +33,11 @@ void hr::ray::ComboConverter::Apply(RayData& from_ray, RayData& to_ray)
 
 	if (converters.size() % 2 == 0)
 	{
-		converters[0].Apply(from_ray, buffer);
+		converters[0](from_ray, buffer);
 	}
 	else
 	{
-		converters[0].Apply(from_ray, to_ray);
+		converters[0](from_ray, to_ray);
 		offset = 1u;
 	}
 
@@ -45,11 +45,11 @@ void hr::ray::ComboConverter::Apply(RayData& from_ray, RayData& to_ray)
 	{
 		if ((i + offset) % 2 == 0)
 		{
-			converters[i].Apply(to_ray, buffer);
+			converters[i](to_ray, buffer);
 		}
 		else
 		{
-			converters[i].Apply(buffer, to_ray);
+			converters[i](buffer, to_ray);
 		}
 	}
 }
